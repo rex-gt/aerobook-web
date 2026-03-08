@@ -63,7 +63,13 @@ async function handleLogin() {
   try {
     await authStore.login(email.value, password.value)
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.message || 'Login failed. Please check your credentials.'
+    if (!error.response) {
+      errorMessage.value = `Unable to reach the server (${error.message}). Check that the API URL is configured correctly.`
+    } else if (error.response.status === 401) {
+      errorMessage.value = error.response.data?.message || 'Invalid email or password.'
+    } else {
+      errorMessage.value = error.response.data?.message || `Server error (${error.response.status}). Please try again.`
+    }
   } finally {
     isLoading.value = false
   }

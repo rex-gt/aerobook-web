@@ -25,25 +25,21 @@ export const useAuthStore = defineStore('auth', () => {
   const canViewOwnData = computed(() => isAuthenticated.value)
 
   async function login(email: string, password: string) {
-    try {
-      const response = await authAPI.login(email, password)
-      token.value = response.data.token
-      localStorage.setItem('token', response.data.token)
-      await loadProfile()
-      router.push('/dashboard')
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    }
+    const response = await authAPI.login(email, password)
+    token.value = response.data.token
+    localStorage.setItem('token', response.data.token)
+    await loadProfile(false)
+    router.push('/dashboard')
   }
 
-  async function loadProfile() {
+  async function loadProfile(logoutOnFail = true) {
     try {
       const response = await authAPI.getProfile()
       user.value = response.data
     } catch (error) {
       console.error('Failed to load profile:', error)
-      logout()
+      if (logoutOnFail) logout()
+      throw error
     }
   }
 
@@ -56,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Load profile on store initialization if token exists
   if (token.value) {
-    loadProfile()
+    loadProfile(true)
   }
 
   return {
