@@ -1,6 +1,6 @@
-# Flying Club Frontend - Vue 3 (v2.0 - RBAC Edition)
+# WingTime Flight Management System - Web
 
-Modern Vue 3 + TypeScript + Vite frontend with **Role-Based Access Control** for the Flying Club API.
+Vue 3 fronend web application for WingTime Flight Management System
 
 ## 🆕 What's New in v2.0
 

@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ Flying Club</div>
+      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime Flight Management System</div>
       <div class="user-info">
         <span v-if="authStore.user" class="user-details">
           {{ authStore.user.first_name }} {{ authStore.user.last_name }}
