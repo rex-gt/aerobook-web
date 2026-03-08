@@ -21,6 +21,14 @@ export default defineConfig({
           key: fs.readFileSync(sslKeyPath),
           cert: fs.readFileSync(sslCertPath)
         }
-      : false
+      : false,
+    // Proxy /api requests to the backend to avoid mixed-content issues
+    // when the dev server is running over HTTPS
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
   }
 })
