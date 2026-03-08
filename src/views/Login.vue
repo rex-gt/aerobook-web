@@ -43,6 +43,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { API_URL } from '../services/api'
 
 const authStore = useAuthStore()
 
@@ -64,7 +65,7 @@ async function handleLogin() {
     await authStore.login(email.value, password.value)
   } catch (error: any) {
     if (!error.response) {
-      errorMessage.value = `Unable to reach the server (${error.message}). Check that the API URL is configured correctly.`
+      errorMessage.value = `Unable to reach the server at: ${API_URL} — Check that VITE_API_URL is set correctly in Vercel and redeploy.`
     } else if (error.response.status === 401) {
       errorMessage.value = error.response.data?.message || 'Invalid email or password.'
     } else {
