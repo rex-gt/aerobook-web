@@ -128,7 +128,7 @@ const displayReservations = computed(() => {
 
 async function loadData() {
   try {
-    const promises = [
+    const promises: Promise<any>[] = [
       aircraftAPI.getAll(),
       reservationsAPI.getAll()
     ]
