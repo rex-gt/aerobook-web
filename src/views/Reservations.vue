@@ -81,7 +81,7 @@
               :class="`aircraft-color-${getAircraftColorIndex(res.aircraft_id)}`"
               @click.stop="openDetail(res)"
             >
-              {{ formatTime(res.start_time) }} {{ getAircraftLabel(res.aircraft_id) }}
+              {{ formatTime(res.start_time) }} {{ getAircraftLabel(res.aircraft_id) }} · {{ res.member_name || getMemberName(res.member_id) }}
             </div>
           </div>
         </div>
@@ -129,6 +129,7 @@
             >
               <div class="event-label">{{ getAircraftLabel(res.aircraft_id) }}</div>
               <div class="event-time">{{ formatTime(res.start_time) }}–{{ formatTime(res.end_time) }}</div>
+              <div class="event-member">{{ res.member_name || getMemberName(res.member_id) }}</div>
             </div>
           </div>
         </div>
@@ -148,7 +149,7 @@
           <div class="detail-grid">
             <div class="detail-item">
               <label>Member</label>
-              <p>{{ getMemberName(detailReservation.member_id) }}</p>
+              <p>{{ detailReservation.member_name || getMemberName(detailReservation.member_id) }}</p>
             </div>
             <div class="detail-item">
               <label>Aircraft</label>
@@ -176,8 +177,10 @@
             </div>
           </div>
           <div class="modal-actions">
-            <button class="btn-primary btn-small" @click="beginEdit">Edit</button>
-            <button class="btn-danger btn-small" @click="deleteReservation(detailReservation.id)">Delete</button>
+            <template v-if="!authStore.isMember || detailReservation.member_id === authStore.user?.id">
+              <button class="btn-primary btn-small" @click="beginEdit">Edit</button>
+              <button class="btn-danger btn-small" @click="deleteReservation(detailReservation.id)">Delete</button>
+            </template>
             <button class="btn-secondary btn-small" @click="closeDetail">Close</button>
           </div>
         </template>
@@ -185,9 +188,9 @@
         <!-- Edit Mode -->
         <form v-else @submit.prevent="saveEdit">
           <div class="form-row">
-            <div class="form-group">
+            <div v-if="!authStore.isMember" class="form-group">
               <label>Member</label>
-              <select v-model="editData.member_id" required>
+              <select v-model="editData.member_id" :required="!authStore.isMember">
                 <option :value="0">Select Member</option>
                 <option v-for="m in members" :key="m.id" :value="m.id">
                   {{ m.first_name }} {{ m.last_name }}
@@ -243,9 +246,9 @@
         </div>
         <form @submit.prevent="handleSubmit">
           <div class="form-row">
-            <div class="form-group">
+            <div v-if="!authStore.isMember" class="form-group">
               <label>Member</label>
-              <select v-model="formData.member_id" required>
+              <select v-model="formData.member_id" :required="!authStore.isMember">
                 <option :value="0">Select Member</option>
                 <option v-for="m in members" :key="m.id" :value="m.id">
                   {{ m.first_name }} {{ m.last_name }}
@@ -347,14 +350,18 @@ const timeViewBodyRef = ref<HTMLElement | null>(null)
 // ── Load Data ─────────────────────────────────────────────
 async function loadData() {
   try {
-    const [resRes, memRes, airRes] = await Promise.all([
+    const requests: Promise<any>[] = [
       reservationsAPI.getAll(),
-      membersAPI.getAll(),
       aircraftAPI.getAll()
-    ])
+    ]
+    if (!authStore.isMember) {
+      requests.push(membersAPI.getAll())
+    }
+
+    const [resRes, airRes, memRes] = await Promise.all(requests)
     reservations.value = resRes.data
-    members.value = memRes.data
     aircraft.value = airRes.data
+    if (memRes) members.value = memRes.data
   } catch (error) {
     console.error('Error loading data:', error)
   }
@@ -483,7 +490,7 @@ function handleTimeSlotClick(day: Date, hour: number) {
 // ── New Reservation ───────────────────────────────────────
 function openNewReservationForm(start?: Date, end?: Date) {
   formData.value = {
-    member_id: 0,
+    member_id: authStore.isMember && authStore.user ? authStore.user.id : 0,
     aircraft_id: selectedAircraftId.value > 0 ? selectedAircraftId.value : 0,
     start_time: start ? toDatetimeLocal(start) : '',
     end_time: end ? toDatetimeLocal(end) : '',
@@ -984,6 +991,14 @@ function toUTCISOString(datetimeLocal: string): string {
 .event-time {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.68rem;
+}
+
+.event-member {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.67rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Aircraft Colour Variants (6 colours) ─────────────── */

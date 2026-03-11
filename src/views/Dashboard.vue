@@ -49,10 +49,10 @@
           Manage Aircraft
         </button>
         <button class="btn-primary" @click="$router.push('/reservations')">
-          All Reservations
+          Reservations
         </button>
         <button class="btn-primary" @click="$router.push('/flight-logs')">
-          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flights' }}
+          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flight Logs' }}
         </button>
         <button v-if="authStore.canManageBilling" class="btn-primary" @click="$router.push('/billing')">
           Billing
