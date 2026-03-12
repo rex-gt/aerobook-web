@@ -37,6 +37,11 @@ export interface Reservation {
   notes?: string
   created_at: string
   updated_at: string
+  // Fields joined from members/aircraft by the API
+  member_name?: string
+  tail_number?: string
+  make?: string
+  model?: string
 }
 
 export interface FlightLog {

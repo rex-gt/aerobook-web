@@ -29,7 +29,7 @@
       </div>
 
       <div class="stat-card">
-        <h3>{{ authStore.isAdmin || authStore.isOperator ? 'All' : 'My' }} Reservations</h3>
+        <h3>Upcoming Reservations</h3>
         <div class="value">{{ upcomingReservations }}</div>
       </div>
 
@@ -49,10 +49,10 @@
           Manage Aircraft
         </button>
         <button class="btn-primary" @click="$router.push('/reservations')">
-          {{ authStore.isAdmin || authStore.isOperator ? 'All Reservations' : 'My Reservations' }}
+          Reservations
         </button>
         <button class="btn-primary" @click="$router.push('/flight-logs')">
-          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flights' }}
+          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flight Logs' }}
         </button>
         <button v-if="authStore.canManageBilling" class="btn-primary" @click="$router.push('/billing')">
           Billing
@@ -67,7 +67,7 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th v-if="authStore.canManageReservations">Member</th>
+              <th>Member</th>
               <th>Aircraft</th>
               <th>Start Time</th>
               <th>Status</th>
@@ -76,7 +76,7 @@
           <tbody>
             <tr v-for="reservation in displayReservations" :key="reservation.id">
               <td>{{ reservation.id }}</td>
-              <td v-if="authStore.canManageReservations">Member #{{ reservation.member_id }}</td>
+              <td>Member #{{ reservation.member_id }}</td>
               <td>Aircraft #{{ reservation.aircraft_id }}</td>
               <td>{{ formatDate(reservation.start_time) }}</td>
               <td>
@@ -86,7 +86,7 @@
               </td>
             </tr>
             <tr v-if="displayReservations.length === 0">
-              <td :colspan="authStore.canManageReservations ? 5 : 4" class="no-data">
+              <td colspan="5" class="no-data">
                 No reservations found
               </td>
             </tr>
@@ -112,18 +112,12 @@ const billing = ref<BillingRecord[]>([])
 
 const availableAircraft = computed(() => aircraft.value.filter(a => a.is_available).length)
 const upcomingReservations = computed(() => {
-  const filtered = authStore.isAdmin || authStore.isOperator
-    ? reservations.value
-    : reservations.value.filter(r => r.member_id === authStore.user?.id)
-  return filtered.filter(r => r.status === 'scheduled').length
+  return reservations.value.filter(r => r.status === 'scheduled').length
 })
 const unpaidBills = computed(() => billing.value.filter(b => !b.is_paid).length)
 
 const displayReservations = computed(() => {
-  const filtered = authStore.isAdmin || authStore.isOperator
-    ? reservations.value
-    : reservations.value.filter(r => r.member_id === authStore.user?.id)
-  return filtered.slice(0, 5)
+  return reservations.value.slice(0, 5)
 })
 
 async function loadData() {

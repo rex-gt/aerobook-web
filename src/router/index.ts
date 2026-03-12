@@ -6,7 +6,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/dashboard'
+      redirect: '/reservations'
     },
     {
       path: '/login',
@@ -67,7 +67,7 @@ router.beforeEach((to, _from, next) => {
   } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
     next('/dashboard')
   } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/dashboard')
+    next('/reservations')
   } else {
     next()
   }

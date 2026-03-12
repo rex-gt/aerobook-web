@@ -29,7 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = response.data.token
     localStorage.setItem('token', response.data.token)
     await loadProfile(false)
-    router.push('/dashboard')
+    router.push('/reservations')
   }
 
   async function loadProfile(logoutOnFail = true) {
