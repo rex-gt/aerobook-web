@@ -641,7 +641,54 @@ function getEventStyle(res: Reservation, day: Date): Record<string, string> {
   const topPx = (startMins - DAY_START_HOUR * 60) / 60 * HOUR_HEIGHT
   const heightPx = Math.max(MIN_EVENT_HEIGHT, (endMins - startMins) / 60 * HOUR_HEIGHT)
 
-  return { top: `${topPx}px`, height: `${heightPx}px` }
+  // Find overlapping events for this day
+  const dayEvents = getReservationsForDay(day)
+
+  // Assign columns using a greedy algorithm
+  const columns = new Map<number, number>() // event.id -> column number
+  dayEvents.forEach(event => {
+    const eventStart = new Date(event.start_time)
+    const eventEnd = new Date(event.end_time)
+
+    // Clip to visible range
+    const s = eventStart < visibleStart ? visibleStart : eventStart
+    const e = eventEnd > visibleEnd ? visibleEnd : eventEnd
+
+    // Find minimum column that doesn't conflict
+    let col = 0
+    let foundColumn = false
+    while (!foundColumn) {
+      const conflict = Array.from(columns.entries()).some(([otherId, otherCol]) => {
+        if (otherCol !== col) return false
+        const other = dayEvents.find(d => d.id === otherId)!
+        const otherStart = new Date(other.start_time)
+        const otherEnd = new Date(other.end_time)
+        const os = otherStart < visibleStart ? visibleStart : otherStart
+        const oe = otherEnd > visibleEnd ? visibleEnd : otherEnd
+        // Check if they overlap
+        return s < oe && e > os
+      })
+      if (!conflict) {
+        columns.set(event.id, col)
+        foundColumn = true
+      } else {
+        col++
+      }
+    }
+  })
+
+  const colIndex = columns.get(res.id) || 0
+  const totalCols = Math.max(...Array.from(columns.values())) + 1
+  const colWidth = (100 - 4) / totalCols
+  const leftPercent = 2 + colWidth * colIndex
+
+  return {
+    top: `${topPx}px`,
+    height: `${heightPx}px`,
+    left: `${leftPercent}%`,
+    right: 'auto',
+    width: `${colWidth}%`
+  }
 }
 
 function getAircraftColorIndex(aircraftId: number): number {
@@ -1008,8 +1055,6 @@ function toUTCISOString(datetimeLocal: string): string {
 
 .cal-event {
   position: absolute;
-  left: 2px;
-  right: 2px;
   border-radius: 5px;
   padding: 3px 6px;
   font-size: 0.72rem;
