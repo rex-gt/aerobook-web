@@ -1,17 +1,5 @@
 <template>
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="$router.push('/profile')" title="Edit profile">Profile</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
     <div class="dashboard-header">
       <h1>Dashboard</h1>
       <p>Welcome back! Here's what's happening with your flying club.</p>
@@ -36,27 +24,6 @@
       <div class="stat-card" v-if="authStore.canManageBilling">
         <h3>Unpaid Bills</h3>
         <div class="value">{{ unpaidBills }}</div>
-      </div>
-    </div>
-
-    <div class="quick-actions">
-      <h2>Quick Actions</h2>
-      <div class="action-buttons">
-        <button v-if="authStore.canManageMembers" class="btn-primary" @click="$router.push('/members')">
-          Manage Members
-        </button>
-        <button v-if="authStore.canManageAircraft" class="btn-primary" @click="$router.push('/aircraft')">
-          Manage Aircraft
-        </button>
-        <button class="btn-primary" @click="$router.push('/reservations')">
-          Reservations
-        </button>
-        <button class="btn-primary" @click="$router.push('/flight-logs')">
-          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flight Logs' }}
-        </button>
-        <button v-if="authStore.canManageBilling" class="btn-primary" @click="$router.push('/billing')">
-          Billing
-        </button>
       </div>
     </div>
 

@@ -1,16 +1,5 @@
 <template>
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
     <div class="profile-header">
       <h1>Edit Profile</h1>
       <p>Update your personal information and password</p>

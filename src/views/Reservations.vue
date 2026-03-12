@@ -1,14 +1,5 @@
 <template>
   <div class="container">
-    <!-- Header -->
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
     <!-- Page Header -->
     <div class="page-header">
       <div>

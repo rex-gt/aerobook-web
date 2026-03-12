@@ -5,55 +5,56 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/',
-      redirect: '/reservations'
-    },
-    {
       path: '/login',
       name: 'Login',
       component: () => import('../views/Login.vue')
     },
     {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: () => import('../views/Dashboard.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/aircraft',
-      name: 'Aircraft',
-      component: () => import('../views/Aircraft.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/reservations',
-      name: 'Reservations',
-      component: () => import('../views/Reservations.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/flight-logs',
-      name: 'FlightLogs',
-      component: () => import('../views/FlightLogs.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/billing',
-      name: 'Billing',
-      component: () => import('../views/Billing.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/profile',
-      name: 'Profile',
-      component: () => import('../views/Profile.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/members',
-      name: 'Members',
-      component: () => import('../views/Members.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
+      path: '/',
+      component: () => import('../components/AppLayout.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          redirect: '/reservations'
+        },
+        {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: () => import('../views/Dashboard.vue')
+        },
+        {
+          path: 'aircraft',
+          name: 'Aircraft',
+          component: () => import('../views/Aircraft.vue')
+        },
+        {
+          path: 'reservations',
+          name: 'Reservations',
+          component: () => import('../views/Reservations.vue')
+        },
+        {
+          path: 'flight-logs',
+          name: 'FlightLogs',
+          component: () => import('../views/FlightLogs.vue')
+        },
+        {
+          path: 'billing',
+          name: 'Billing',
+          component: () => import('../views/Billing.vue')
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('../views/Profile.vue')
+        },
+        {
+          path: 'members',
+          name: 'Members',
+          component: () => import('../views/Members.vue'),
+          meta: { requiresAdmin: true }
+        }
+      ]
     }
   ]
 })

@@ -1,14 +1,5 @@
 <template>
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
     <div v-if="!authStore.canManageAircraft" class="alert alert-error">
       <strong>Access Denied:</strong> You don't have permission to manage aircraft. Only Admins and Operators can access this page.
     </div>
