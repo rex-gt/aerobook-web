@@ -183,10 +183,13 @@
             </template>
             <button class="btn-secondary btn-small" @click="closeDetail">Close</button>
           </div>
+          <div v-if="editSuccessMessage" class="alert alert-success" style="margin-top: 0.75rem;">{{ editSuccessMessage }}</div>
+          <div v-if="editError" class="alert alert-error" style="margin-top: 0.75rem;">{{ editError }}</div>
         </template>
 
         <!-- Edit Mode -->
         <form v-else @submit.prevent="saveEdit">
+          <div v-if="editError" class="alert alert-error">{{ editError }}</div>
           <div class="form-row">
             <div v-if="!authStore.isMember" class="form-group">
               <label>Member</label>
@@ -245,6 +248,7 @@
           <button class="btn-close" @click="showNewForm = false">✕</button>
         </div>
         <form @submit.prevent="handleSubmit">
+          <div v-if="formError" class="alert alert-error">{{ formError }}</div>
           <div class="form-row">
             <div v-if="!authStore.isMember" class="form-group">
               <label>Member</label>
@@ -311,6 +315,7 @@ const selectedAircraftId = ref(0)
 
 // ── Form State ────────────────────────────────────────────
 const showNewForm = ref(false)
+const formError = ref('')
 const formData = ref({
   member_id: 0,
   aircraft_id: 0,
@@ -323,6 +328,8 @@ const formData = ref({
 // ── Detail / Edit State ───────────────────────────────────
 const detailReservation = ref<Reservation | null>(null)
 const editMode = ref(false)
+const editError = ref('')
+const editSuccessMessage = ref('')
 const editData = ref({
   member_id: 0,
   aircraft_id: 0,
@@ -497,12 +504,19 @@ function openNewReservationForm(start?: Date, end?: Date) {
     notes: '',
     status: 'scheduled'
   }
+  formError.value = ''
   showNewForm.value = true
 }
 
 async function handleSubmit() {
+  formError.value = ''
   if (!formData.value.member_id || !formData.value.aircraft_id) {
-    alert('Please select a member and an aircraft.')
+    formError.value = 'Please select a member and an aircraft.'
+    return
+  }
+  const timeError = validateReservationTimes(formData.value.start_time, formData.value.end_time)
+  if (timeError) {
+    formError.value = timeError
     return
   }
   try {
@@ -514,8 +528,9 @@ async function handleSubmit() {
     await reservationsAPI.create(payload)
     await loadData()
     showNewForm.value = false
-  } catch (error) {
-    console.error('Error creating reservation:', error)
+  } catch (error: unknown) {
+    formError.value =
+      extractApiError(error) || 'Failed to create reservation. Please try again.'
   }
 }
 
@@ -528,6 +543,8 @@ function openDetail(res: Reservation) {
 function closeDetail() {
   detailReservation.value = null
   editMode.value = false
+  editError.value = ''
+  editSuccessMessage.value = ''
 }
 
 function beginEdit() {
@@ -540,26 +557,50 @@ function beginEdit() {
     status: res.status,
     notes: res.notes ?? ''
   }
+  editError.value = ''
+  editSuccessMessage.value = ''
   editMode.value = true
 }
 
 async function saveEdit() {
+  editError.value = ''
   if (!detailReservation.value) return
   if (!editData.value.member_id || !editData.value.aircraft_id) {
-    alert('Please select a member and an aircraft.')
+    editError.value = 'Please select a member and an aircraft.'
+    return
+  }
+  const timeError = validateReservationTimes(editData.value.start_time, editData.value.end_time)
+  if (timeError) {
+    editError.value = timeError
     return
   }
   try {
+    const savedId = detailReservation.value.id
     const payload = {
       ...editData.value,
+      aircraft_id: Number(editData.value.aircraft_id),
+      member_id: Number(editData.value.member_id),
       start_time: toUTCISOString(editData.value.start_time),
       end_time: toUTCISOString(editData.value.end_time)
     }
-    await reservationsAPI.update(detailReservation.value.id, payload)
+    await reservationsAPI.update(savedId, payload)
     await loadData()
-    closeDetail()
-  } catch (error) {
-    console.error('Error updating reservation:', error)
+    // Stay on the detail view so the user can confirm the change was applied.
+    // Find the freshly-loaded reservation and update the detail binding.
+    const fresh = reservations.value.find(r => r.id === savedId)
+    if (fresh) {
+      detailReservation.value = fresh
+      editMode.value = false
+      editSuccessMessage.value = 'Reservation updated successfully!'
+      setTimeout(() => { editSuccessMessage.value = '' }, 3000)
+    } else {
+      // Reservation was updated but not found in the refreshed list (unlikely);
+      // close the modal gracefully so the calendar re-renders with the new data.
+      closeDetail()
+    }
+  } catch (error: unknown) {
+    editError.value =
+      extractApiError(error) || 'Failed to update reservation. Please try again.'
   }
 }
 
@@ -569,8 +610,9 @@ async function deleteReservation(id: number) {
       await reservationsAPI.delete(id)
       await loadData()
       closeDetail()
-    } catch (error) {
-      console.error('Error deleting reservation:', error)
+    } catch (error: unknown) {
+      editError.value =
+        extractApiError(error) || 'Failed to delete reservation. Please try again.'
     }
   }
 }
@@ -618,7 +660,54 @@ function getEventStyle(res: Reservation, day: Date): Record<string, string> {
   const topPx = (startMins - DAY_START_HOUR * 60) / 60 * HOUR_HEIGHT
   const heightPx = Math.max(MIN_EVENT_HEIGHT, (endMins - startMins) / 60 * HOUR_HEIGHT)
 
-  return { top: `${topPx}px`, height: `${heightPx}px` }
+  // Find overlapping events for this day
+  const dayEvents = getReservationsForDay(day)
+
+  // Assign columns using a greedy algorithm
+  const columns = new Map<number, number>() // event.id -> column number
+  dayEvents.forEach(event => {
+    const eventStart = new Date(event.start_time)
+    const eventEnd = new Date(event.end_time)
+
+    // Clip to visible range
+    const s = eventStart < visibleStart ? visibleStart : eventStart
+    const e = eventEnd > visibleEnd ? visibleEnd : eventEnd
+
+    // Find minimum column that doesn't conflict
+    let col = 0
+    let foundColumn = false
+    while (!foundColumn) {
+      const conflict = Array.from(columns.entries()).some(([otherId, otherCol]) => {
+        if (otherCol !== col) return false
+        const other = dayEvents.find(d => d.id === otherId)!
+        const otherStart = new Date(other.start_time)
+        const otherEnd = new Date(other.end_time)
+        const os = otherStart < visibleStart ? visibleStart : otherStart
+        const oe = otherEnd > visibleEnd ? visibleEnd : otherEnd
+        // Check if they overlap
+        return s < oe && e > os
+      })
+      if (!conflict) {
+        columns.set(event.id, col)
+        foundColumn = true
+      } else {
+        col++
+      }
+    }
+  })
+
+  const colIndex = columns.get(res.id) || 0
+  const totalCols = Math.max(...Array.from(columns.values())) + 1
+  const colWidth = (100 - 4) / totalCols
+  const leftPercent = 2 + colWidth * colIndex
+
+  return {
+    top: `${topPx}px`,
+    height: `${heightPx}px`,
+    left: `${leftPercent}%`,
+    right: 'auto',
+    width: `${colWidth}%`
+  }
 }
 
 function getAircraftColorIndex(aircraftId: number): number {
@@ -685,6 +774,26 @@ function formatDayColumnHeader(day: Date): string {
 function toDatetimeLocal(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+// ── Error Helpers ─────────────────────────────────────────
+function extractApiError(error: unknown): string {
+  const axiosError = error as { response?: { data?: { error?: string; message?: string } } }
+  return (
+    axiosError.response?.data?.error ||
+    axiosError.response?.data?.message ||
+    ''
+  )
+}
+
+function validateReservationTimes(startTime: string, endTime: string): string {
+  if (!startTime || !endTime) {
+    return 'Please provide both a start time and an end time.'
+  }
+  if (new Date(endTime) <= new Date(startTime)) {
+    return 'End time must be after start time.'
+  }
+  return ''
 }
 
 // Convert a datetime-local string (local time, no timezone) to a UTC ISO string
@@ -965,8 +1074,6 @@ function toUTCISOString(datetimeLocal: string): string {
 
 .cal-event {
   position: absolute;
-  left: 2px;
-  right: 2px;
   border-radius: 5px;
   padding: 3px 6px;
   font-size: 0.72rem;
@@ -1123,5 +1230,25 @@ function toUTCISOString(datetimeLocal: string): string {
   gap: 0.75rem;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* ── Inline Alert Messages ─────────────────────────────── */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.alert-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
 }
 </style>
