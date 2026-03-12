@@ -14,115 +14,34 @@
 
     <div class="members-header">
       <h1>Manage Members</h1>
-      <p>Register new members and manage existing members</p>
+      <p>View and manage existing members</p>
     </div>
 
     <div class="members-content">
-      <!-- Registration Form Section -->
-      <div class="form-card">
-        <h2>Register New Member</h2>
-        
+      <!-- Members List Section -->
+      <div class="members-list-card">
+        <div class="list-header">
+          <h2>All Members</h2>
+          <div class="list-header-actions">
+            <div class="search-box">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search members..."
+              />
+            </div>
+            <button class="btn-primary" @click="openRegisterModal">
+              + Register New Member
+            </button>
+          </div>
+        </div>
+
         <div v-if="successMessage" class="alert alert-success">
           {{ successMessage }}
         </div>
 
         <div v-if="errorMessage" class="alert alert-error">
           {{ errorMessage }}
-        </div>
-
-        <form @submit.prevent="handleRegisterMember">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="first_name">First Name</label>
-              <input
-                v-model="newMemberForm.first_name"
-                type="text"
-                id="first_name"
-                placeholder="First name"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="last_name">Last Name</label>
-              <input
-                v-model="newMemberForm.last_name"
-                type="text"
-                id="last_name"
-                placeholder="Last name"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="email">Email Address</label>
-              <input
-                v-model="newMemberForm.email"
-                type="email"
-                id="email"
-                placeholder="email@example.com"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input
-                v-model="newMemberForm.phone"
-                type="tel"
-                id="phone"
-                placeholder="Phone number (optional)"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input
-                v-model="newMemberForm.password"
-                type="password"
-                id="password"
-                placeholder="Initial password"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="role">Role</label>
-              <select v-model="newMemberForm.role" id="role" required>
-                <option value="member">Member</option>
-                <option value="operator">Operator</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="member_number">Member Number (optional)</label>
-              <input
-                v-model="newMemberForm.member_number"
-                type="text"
-                id="member_number"
-                placeholder="Auto-generated if not provided"
-              />
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary" :disabled="isRegistering">
-            {{ isRegistering ? 'Registering...' : 'Register Member' }}
-          </button>
-        </form>
-      </div>
-
-      <!-- Members List Section -->
-      <div class="members-list-card">
-        <div class="list-header">
-          <h2>All Members</h2>
-          <div class="search-box">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search members..."
-            />
-          </div>
         </div>
 
         <div class="table-container">
@@ -191,6 +110,112 @@
           <div v-else class="no-data">
             No members found
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register New Member Modal -->
+    <div v-if="showRegisterModal" class="modal-overlay" @click.self="closeRegisterModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Register New Member</h3>
+          <button @click="closeRegisterModal" class="btn-close">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div v-if="registerSuccessMessage" class="alert alert-success">
+            {{ registerSuccessMessage }}
+          </div>
+
+          <div v-if="registerErrorMessage" class="alert alert-error">
+            {{ registerErrorMessage }}
+          </div>
+
+          <form @submit.prevent="handleRegisterMember">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input
+                  v-model="newMemberForm.first_name"
+                  type="text"
+                  id="first_name"
+                  placeholder="First name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input
+                  v-model="newMemberForm.last_name"
+                  type="text"
+                  id="last_name"
+                  placeholder="Last name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                  v-model="newMemberForm.email"
+                  type="email"
+                  id="email"
+                  placeholder="email@example.com"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input
+                  v-model="newMemberForm.phone"
+                  type="tel"
+                  id="phone"
+                  placeholder="Phone number (optional)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                  v-model="newMemberForm.password"
+                  type="password"
+                  id="password"
+                  placeholder="Initial password"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="role">Role</label>
+                <select v-model="newMemberForm.role" id="role" required>
+                  <option value="member">Member</option>
+                  <option value="operator">Operator</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="member_number">Member Number (optional)</label>
+                <input
+                  v-model="newMemberForm.member_number"
+                  type="text"
+                  id="member_number"
+                  placeholder="Auto-generated if not provided"
+                />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="submit" class="btn-primary" :disabled="isRegistering">
+                {{ isRegistering ? 'Registering...' : 'Register Member' }}
+              </button>
+              <button type="button" class="btn-secondary" @click="closeRegisterModal">
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -301,11 +326,14 @@ const searchQuery = ref('')
 const successMessage = ref('')
 const errorMessage = ref('')
 const editErrorMessage = ref('')
+const registerSuccessMessage = ref('')
+const registerErrorMessage = ref('')
 const isRegistering = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(false)
 const editingMember = ref<Member | null>(null)
 const memberToDelete = ref<Member | null>(null)
+const showRegisterModal = ref(false)
 
 const newMemberForm = ref({
   first_name: '',
@@ -338,19 +366,49 @@ async function loadMembers() {
   }
 }
 
+function openRegisterModal() {
+  showRegisterModal.value = true
+  registerSuccessMessage.value = ''
+  registerErrorMessage.value = ''
+  newMemberForm.value = {
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'member',
+    member_number: ''
+  }
+}
+
+function closeRegisterModal() {
+  showRegisterModal.value = false
+  registerSuccessMessage.value = ''
+  registerErrorMessage.value = ''
+  newMemberForm.value = {
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'member',
+    member_number: ''
+  }
+}
+
 async function handleRegisterMember() {
-  successMessage.value = ''
-  errorMessage.value = ''
+  registerSuccessMessage.value = ''
+  registerErrorMessage.value = ''
 
   // Validate required fields
   if (!newMemberForm.value.first_name || !newMemberForm.value.last_name || 
       !newMemberForm.value.email || !newMemberForm.value.password) {
-    errorMessage.value = 'Please fill in all required fields'
+    registerErrorMessage.value = 'Please fill in all required fields'
     return
   }
 
   if (newMemberForm.value.password.length < 6) {
-    errorMessage.value = 'Password must be at least 6 characters long'
+    registerErrorMessage.value = 'Password must be at least 6 characters long'
     return
   }
 
@@ -368,9 +426,7 @@ async function handleRegisterMember() {
     })
 
     members.value.push(response.data)
-    successMessage.value = `Member ${response.data.first_name} ${response.data.last_name} registered successfully!`
-
-    // Reset form
+    showRegisterModal.value = false
     newMemberForm.value = {
       first_name: '',
       last_name: '',
@@ -380,13 +436,14 @@ async function handleRegisterMember() {
       role: 'member',
       member_number: ''
     }
+    successMessage.value = `Member ${response.data.first_name} ${response.data.last_name} registered successfully!`
 
     // Clear success message after 3 seconds
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Failed to register member'
+    registerErrorMessage.value = error.response?.data?.error || 'Failed to register member'
   } finally {
     isRegistering.value = false
   }
@@ -598,7 +655,6 @@ header {
   width: 100%;
 }
 
-.form-card,
 .members-list-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -609,7 +665,6 @@ header {
   margin-bottom: 2rem;
 }
 
-.form-card h2,
 .members-list-card h2 {
   margin: 0 0 1.5rem;
   color: #e2e8f0;
@@ -704,6 +759,12 @@ header {
 .list-header h2 {
   margin: 0;
   color: #e2e8f0;
+}
+
+.list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .search-box {
@@ -942,7 +1003,6 @@ tbody tr:hover {
     padding: 1rem;
   }
 
-  .form-card,
   .members-list-card {
     padding: 1.5rem;
   }
@@ -954,6 +1014,12 @@ tbody tr:hover {
   .list-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .list-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
   }
 
   .search-box {
