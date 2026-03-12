@@ -183,6 +183,7 @@
             </template>
             <button class="btn-secondary btn-small" @click="closeDetail">Close</button>
           </div>
+          <div v-if="editSuccessMessage" class="alert alert-success" style="margin-top: 0.75rem;">{{ editSuccessMessage }}</div>
           <div v-if="editError" class="alert alert-error" style="margin-top: 0.75rem;">{{ editError }}</div>
         </template>
 
@@ -328,6 +329,7 @@ const formData = ref({
 const detailReservation = ref<Reservation | null>(null)
 const editMode = ref(false)
 const editError = ref('')
+const editSuccessMessage = ref('')
 const editData = ref({
   member_id: 0,
   aircraft_id: 0,
@@ -542,6 +544,7 @@ function closeDetail() {
   detailReservation.value = null
   editMode.value = false
   editError.value = ''
+  editSuccessMessage.value = ''
 }
 
 function beginEdit() {
@@ -555,6 +558,7 @@ function beginEdit() {
     notes: res.notes ?? ''
   }
   editError.value = ''
+  editSuccessMessage.value = ''
   editMode.value = true
 }
 
@@ -571,14 +575,29 @@ async function saveEdit() {
     return
   }
   try {
+    const savedId = detailReservation.value.id
     const payload = {
       ...editData.value,
+      aircraft_id: Number(editData.value.aircraft_id),
+      member_id: Number(editData.value.member_id),
       start_time: toUTCISOString(editData.value.start_time),
       end_time: toUTCISOString(editData.value.end_time)
     }
-    await reservationsAPI.update(detailReservation.value.id, payload)
+    await reservationsAPI.update(savedId, payload)
     await loadData()
-    closeDetail()
+    // Stay on the detail view so the user can confirm the change was applied.
+    // Find the freshly-loaded reservation and update the detail binding.
+    const fresh = reservations.value.find(r => r.id === savedId)
+    if (fresh) {
+      detailReservation.value = fresh
+      editMode.value = false
+      editSuccessMessage.value = 'Reservation updated successfully!'
+      setTimeout(() => { editSuccessMessage.value = '' }, 3000)
+    } else {
+      // Reservation was updated but not found in the refreshed list (unlikely);
+      // close the modal gracefully so the calendar re-renders with the new data.
+      closeDetail()
+    }
   } catch (error: unknown) {
     editError.value =
       extractApiError(error) || 'Failed to update reservation. Please try again.'
@@ -1225,5 +1244,11 @@ function toUTCISOString(datetimeLocal: string): string {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #fca5a5;
+}
+
+.alert-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
 }
 </style>
