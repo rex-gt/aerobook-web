@@ -1,13 +1,6 @@
 <template>
+  <AppNav />
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
 
     <div v-if="!authStore.canManageAircraft" class="alert alert-error">
       <strong>Access Denied:</strong> You don't have permission to manage aircraft. Only Admins and Operators can access this page.
@@ -121,6 +114,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { aircraftAPI } from '../services/api'
 import type { Aircraft } from '../types'
+import AppNav from '../components/AppNav.vue'
 
 const authStore = useAuthStore()
 
@@ -226,28 +220,5 @@ onMounted(() => {
 input[type="checkbox"] {
   width: auto;
   margin-right: 0.5rem;
-}
-
-.role-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.role-admin {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--danger-red);
-}
-
-.role-operator {
-  background: rgba(251, 146, 60, 0.2);
-  color: var(--accent-orange);
-}
-
-.role-member {
-  background: rgba(14, 165, 233, 0.2);
-  color: var(--sky-blue);
 }
 </style>

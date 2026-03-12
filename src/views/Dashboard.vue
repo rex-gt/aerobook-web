@@ -1,16 +1,6 @@
 <template>
+  <AppNav />
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="$router.push('/profile')" title="Edit profile">Profile</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
 
     <div class="dashboard-header">
       <h1>Dashboard</h1>
@@ -102,6 +92,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { membersAPI, aircraftAPI, reservationsAPI, billingAPI } from '../services/api'
 import type { Member, Aircraft, Reservation, BillingRecord } from '../types'
+import AppNav from '../components/AppNav.vue'
 
 const authStore = useAuthStore()
 
@@ -206,32 +197,34 @@ onMounted(() => {
   gap: 1rem;
 }
 
-.user-details {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+@media (max-width: 768px) {
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .quick-actions, .recent-activity {
+    margin-bottom: 1.5rem;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
 }
 
-.role-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.role-admin {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--danger-red);
-}
-
-.role-operator {
-  background: rgba(251, 146, 60, 0.2);
-  color: var(--accent-orange);
-}
-
-.role-member {
-  background: rgba(14, 165, 233, 0.2);
-  color: var(--sky-blue);
+@media (max-width: 480px) {
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

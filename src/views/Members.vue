@@ -1,16 +1,6 @@
 <template>
+  <AppNav />
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ Wing Time</div>
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="$router.push('/profile')" title="Edit profile">Profile</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
 
     <div class="members-header">
       <h1>Manage Members</h1>
@@ -315,11 +305,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useAuthStore } from '../stores/auth'
 import type { Member } from '../types'
 import { membersAPI } from '../services/api'
-
-const authStore = useAuthStore()
+import AppNav from '../components/AppNav.vue'
 
 const members = ref<Member[]>([])
 const searchQuery = ref('')
@@ -553,84 +541,6 @@ loadMembers()
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  background: rgba(0, 0, 0, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: pointer;
-  color: #fff;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.user-details {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #e2e8f0;
-  font-size: 0.9rem;
-}
-
-.role-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.role-admin {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
-}
-
-.role-operator {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-}
-
-.role-member {
-  background: rgba(34, 197, 94, 0.2);
-  color: #86efac;
-}
-
-.btn-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: #e2e8f0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
 .members-header {
   padding: 2rem;
   text-align: center;
@@ -990,11 +900,6 @@ tbody tr:hover {
 }
 
 @media (max-width: 768px) {
-  header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .members-header {
     padding: 1.5rem;
   }

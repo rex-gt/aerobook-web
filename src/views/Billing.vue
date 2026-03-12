@@ -1,12 +1,6 @@
 <template>
+  <AppNav />
   <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
 
     <div class="page-header">
       <div>
@@ -61,11 +55,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
 import { billingAPI } from '../services/api'
 import type { BillingRecord } from '../types'
+import AppNav from '../components/AppNav.vue'
 
-const authStore = useAuthStore()
 const billingRecords = ref<BillingRecord[]>([])
 
 async function loadBillingRecords() {

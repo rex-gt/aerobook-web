@@ -1,14 +1,6 @@
 <template>
+  <AppNav />
   <div class="container">
-    <!-- Header -->
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ WingTime</div>
-      <div class="user-info">
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
     <!-- Page Header -->
     <div class="page-header">
       <div>
@@ -298,6 +290,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { reservationsAPI, membersAPI, aircraftAPI } from '../services/api'
 import type { Reservation, Member, Aircraft } from '../types'
+import AppNav from '../components/AppNav.vue'
 
 type CalendarView = 'day' | 'week' | 'month'
 
@@ -1250,5 +1243,37 @@ function toUTCISOString(datetimeLocal: string): string {
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
   color: #86efac;
+}
+
+@media (max-width: 768px) {
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .aircraft-filter {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .aircraft-filter select {
+    width: 100%;
+  }
+
+  .period-label {
+    min-width: unset;
+    font-size: 0.95rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .page-header button {
+    width: 100%;
+  }
 }
 </style>
