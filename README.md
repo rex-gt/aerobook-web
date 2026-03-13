@@ -13,6 +13,7 @@ Vue 3 frontend web application for WingTime Flight Management System — a role-
 - **Flight Logs** — Record and review flight hours; role-scoped data access
 - **Billing** — Generate and manage billing records; members can view their own
 - **Profile Management** — Edit personal info and change password
+- **Password Reset** — Set password via secure email link for new members
 - **Dynamic Navigation** — Menu items appear/disappear based on role permissions
 - **JWT Authentication** — Secure token-based auth with automatic renewal on page load
 - **HTTPS Support** — Works with a secured backend
@@ -44,6 +45,7 @@ src/
 │   └── api.ts           # Axios instance + typed API methods for all endpoints
 └── views/
     ├── Login.vue         # Login page
+    ├── ResetPassword.vue # Password reset page (from email link)
     ├── Dashboard.vue     # Role-filtered stats and quick actions
     ├── Aircraft.vue      # Aircraft management (admin/operator CRUD; read-only for members)
     ├── Reservations.vue  # Reservation management (scoped by role)
@@ -172,6 +174,7 @@ Routes are defined in `src/router/index.ts`. Navigation guards enforce authentic
 | Route | Auth Required | Admin Only |
 |-------|--------------|-----------|
 | `/login` | No | No |
+| `/reset-password` | No | No |
 | `/dashboard` | Yes | No |
 | `/aircraft` | Yes | No |
 | `/reservations` | Yes | No |
@@ -180,7 +183,7 @@ Routes are defined in `src/router/index.ts`. Navigation guards enforce authentic
 | `/profile` | Yes | No |
 | `/members` | Yes | Yes |
 
-Unauthenticated users are redirected to `/login`. Non-admins visiting `/members` are redirected to `/dashboard`.
+Unauthenticated users are redirected to `/login`. Non-admins visiting `/members` are redirected to `/dashboard`. The `/reset-password` route accepts a `?token=` query parameter from welcome emails.
 
 ## API Service
 
