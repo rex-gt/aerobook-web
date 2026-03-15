@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# Vercel Environment Variables Setup Script
+# Sets up all environment variables for WingTime web app
+
+echo "=========================================="
+echo "WingTime - Vercel Setup"
+echo "=========================================="
+echo ""
+
+# Check if vercel CLI is installed
+if ! command -v vercel &> /dev/null; then
+    echo "❌ Vercel CLI is not installed."
+    echo ""
+    echo "Install it with: npm install -g vercel"
+    echo "Or visit: https://vercel.com/docs/cli"
+    exit 1
+fi
+
+echo "✓ Vercel CLI is ready"
+echo ""
+
+# Check if in a git repo
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "❌ Not in a git repository."
+    echo "Please run this from your wingtime-web directory."
+    exit 1
+fi
+
+# Check if already linked
+if [ ! -f .vercel/project.json ]; then
+    echo "⚠️  Project not linked to Vercel."
+    echo ""
+    read -p "Would you like to link to Vercel now? (y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        vercel link
+    else
+        echo "Please run 'vercel link' first, then run this script again."
+        exit 1
+    fi
+fi
+
+echo "Current Vercel project:"
+vercel project ls 2>/dev/null || echo "Linked to Vercel"
+echo ""
+
+# Get API URL
+echo "=========================================="
+echo "Backend API Configuration"
+echo "=========================================="
+echo ""
+echo "Enter your Railway API URL"
+echo "Example: https://wingtime-api-production.up.railway.app"
+echo ""
+read -p "API URL: " api_url
+echo ""
+
+# Validate URL
+if [[ ! $api_url =~ ^https?:// ]]; then
+    echo "❌ Invalid URL. Must start with http:// or https://"
+    exit 1
+fi
+
+# Confirm settings
+echo "=========================================="
+echo "Configuration Summary"
+echo "=========================================="
+echo "VITE_API_URL: $api_url"
+echo ""
+echo "These variables will be set for:"
+echo "  - Production"
+echo "  - Preview"
+echo "  - Development"
+echo ""
+
+read -p "Is this correct? (y/n) " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Setup cancelled."
+    exit 0
+fi
+
+# Set environment variables
+echo ""
+echo "Setting Vercel environment variables..."
+echo ""
+
+# Production
+echo "Setting for Production..."
+vercel env add VITE_API_URL production <<< "$api_url"
+
+# Preview
+echo "Setting for Preview..."
+vercel env add VITE_API_URL preview <<< "$api_url"
+
+# Development (optional - usually uses localhost)
+read -p "Set for Development environment too? (y/n) " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Setting for Development..."
+    vercel env add VITE_API_URL development <<< "$api_url"
+else
+    echo "Skipping Development (will use local .env)"
+fi
+
+echo ""
+echo "✓ Environment variables set successfully!"
+echo ""
+
+# Pull variables to local
+echo "=========================================="
+echo "Pull Variables to Local .env"
+echo "=========================================="
+echo ""
+read -p "Download variables to local .env file? (y/n) " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    vercel env pull .env.local
+    echo "✓ Variables downloaded to .env.local"
+fi
+
+echo ""
+echo "=========================================="
+echo "Setup Complete!"
+echo "=========================================="
+echo ""
+echo "Next steps:"
+echo "1. Trigger a redeploy: vercel --prod"
+echo "2. Or push to GitHub (auto-deploys)"
+echo "3. Check deployment: vercel inspect"
+echo ""
+echo "To view all variables:"
+echo "  vercel env ls"
+echo ""
+echo "To update a variable:"
+echo "  vercel env rm VARIABLE_NAME"
+echo "  vercel env add VARIABLE_NAME"
+echo ""
