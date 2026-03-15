@@ -45,24 +45,36 @@ echo "Current Vercel project:"
 vercel project ls 2>/dev/null || echo "Linked to Vercel"
 echo ""
 
-# Get API URL from .env file
+# Get API URL from env files
 echo "=========================================="
 echo "Backend API Configuration"
 echo "=========================================="
 echo ""
 
-# Resolve the project root (two levels up from scripts/vercel/)
+# Resolve paths: .env.local (in scripts/vercel/) has the deployed URL,
+# .env (in project root) has the local dev URL — check .env.local first.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ENV_LOCAL="$SCRIPT_DIR/.env.local"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 api_url=""
-if [ -f "$ENV_FILE" ]; then
-    api_url=$(grep -E '^VITE_API_URL=' "$ENV_FILE" | head -1 | cut -d'=' -f2-)
+env_source=""
+
+# Prefer .env.local (Vercel-pulled, has production URL)
+if [ -f "$ENV_LOCAL" ]; then
+    api_url=$(grep -E '^VITE_API_URL=' "$ENV_LOCAL" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" | tr -d '\\n')
+    [ -n "$api_url" ] && env_source="$ENV_LOCAL"
+fi
+
+# Fall back to project root .env
+if [ -z "$api_url" ] && [ -f "$ENV_FILE" ]; then
+    api_url=$(grep -E '^VITE_API_URL=' "$ENV_FILE" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+    [ -n "$api_url" ] && env_source="$ENV_FILE"
 fi
 
 if [ -z "$api_url" ]; then
-    echo "⚠️  VITE_API_URL not found in $ENV_FILE"
+    echo "⚠️  VITE_API_URL not found in $ENV_LOCAL or $ENV_FILE"
     echo ""
     echo "Enter your Railway API URL"
     echo "Example: https://aerobook-api-production.up.railway.app"
@@ -70,7 +82,7 @@ if [ -z "$api_url" ]; then
     read -p "API URL: " api_url
     echo ""
 else
-    echo "Read from $ENV_FILE:"
+    echo "Read from $env_source:"
     echo "  VITE_API_URL=$api_url"
     echo ""
 fi
