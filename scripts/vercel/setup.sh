@@ -66,7 +66,7 @@ env_source=""
 
 # Prefer .env.local (Vercel-pulled, has production URL)
 if [ -f "$ENV_LOCAL" ]; then
-    api_url=$(grep -E '^VITE_API_URL=' "$ENV_LOCAL" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" | tr -d '\\n')
+    api_url=$(grep -E '^VITE_API_URL=' "$ENV_LOCAL" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
     [ -n "$api_url" ] && env_source="$ENV_LOCAL"
 fi
 
