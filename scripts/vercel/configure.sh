@@ -3,6 +3,11 @@
 # Vercel Project Settings Configuration
 # Configures build settings, deployment settings, etc.
 
+# Always run from project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 echo "=========================================="
 echo "AeroBook - Vercel Project Configuration"
 echo "=========================================="

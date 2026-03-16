@@ -3,6 +3,11 @@
 # Vercel Variables Viewer
 # Quick script to view all environment variables on Vercel
 
+# Always run from project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 echo "=========================================="
 echo "Vercel Environment Variables"
 echo "=========================================="

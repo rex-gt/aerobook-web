@@ -3,6 +3,11 @@
 # Vercel Environment Variables Setup Script
 # Sets up all environment variables for AeroBook web app
 
+# Always run from project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 echo "=========================================="
 echo "AeroBook - Vercel Setup"
 echo "=========================================="
@@ -51,11 +56,9 @@ echo "Backend API Configuration"
 echo "=========================================="
 echo ""
 
-# Resolve paths: .env.local (in scripts/vercel/) has the deployed URL,
+# Resolve paths: .env.local (in project root) has the deployed URL,
 # .env (in project root) has the local dev URL — check .env.local first.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-ENV_LOCAL="$SCRIPT_DIR/.env.local"
+ENV_LOCAL="$PROJECT_ROOT/.env.local"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 api_url=""
