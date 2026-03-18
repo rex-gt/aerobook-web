@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <div class="logo">✈ AeroBook</div>
+      <img src="/aerobook-logo.svg" alt="AeroBook" class="logo" />
       <h1>Welcome to AeroBook</h1>
       <p>Sign in to manage your flights</p>
 
@@ -99,13 +99,8 @@ async function handleLogin() {
 }
 
 .logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
+  height: 48px;
   margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .login-box h1 {

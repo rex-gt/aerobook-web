@@ -183,9 +183,8 @@ header {
 }
 
 .logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
+  height: 40px;
+  width: auto;
   cursor: pointer;
 }
 
