@@ -1,14 +1,5 @@
 <template>
-  <div class="container">
-    <!-- Header -->
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ AeroBook</div>
-      <div class="user-info">
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
+  <AppLayout>
     <!-- Page Header -->
     <div class="page-header">
       <div>
@@ -290,7 +281,7 @@
         </form>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -302,6 +293,7 @@ import {
   getWeekDays, sameDay, stripTime, formatHour, formatTime, formatDate,
   toDatetimeLocal, extractApiError, validateReservationTimes, toUTCISOString
 } from '../utils/reservations'
+import AppLayout from '../components/AppLayout.vue'
 
 type CalendarView = 'day' | 'week' | 'month'
 

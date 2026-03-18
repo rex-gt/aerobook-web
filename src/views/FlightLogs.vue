@@ -1,13 +1,5 @@
 <template>
-  <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ AeroBook</div>
-      <div class="user-info">
-        <button class="btn-secondary" @click="$router.push('/dashboard')">Dashboard</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
+  <AppLayout>
     <div class="page-header">
       <div>
         <h1>Flight Logs</h1>
@@ -31,8 +23,8 @@
         <tbody>
           <tr v-for="log in flightLogs" :key="log.id">
             <td>#{{ log.id }}</td>
-            <td>Member #{{ log.member_id }}</td>
-            <td>Aircraft #{{ log.aircraft_id }}</td>
+            <td>{{ getMemberName(log.member_id) }}</td>
+            <td>{{ getAircraftName(log.aircraft_id) }}</td>
             <td>{{ formatDate(log.flight_date) }}</td>
             <td>{{ formatTime(log.departure_time) }}</td>
             <td>{{ formatTime(log.arrival_time) }}</td>
@@ -44,25 +36,42 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { flightLogsAPI } from '../services/api'
-import type { FlightLog } from '../types'
+import { flightLogsAPI, membersAPI, aircraftAPI } from '../services/api'
+import type { FlightLog, Member, Aircraft } from '../types'
+import AppLayout from '../components/AppLayout.vue'
 
-const authStore = useAuthStore()
 const flightLogs = ref<FlightLog[]>([])
+const members = ref<Member[]>([])
+const aircraft = ref<Aircraft[]>([])
 
-async function loadFlightLogs() {
+async function loadData() {
   try {
-    const response = await flightLogsAPI.getAll()
-    flightLogs.value = response.data
+    const [logsRes, membersRes, aircraftRes] = await Promise.all([
+      flightLogsAPI.getAll(),
+      membersAPI.getAll(),
+      aircraftAPI.getAll()
+    ])
+    flightLogs.value = logsRes.data
+    members.value = membersRes.data
+    aircraft.value = aircraftRes.data
   } catch (error) {
     console.error('Error loading flight logs:', error)
   }
+}
+
+function getMemberName(memberId: number): string {
+  const member = members.value.find(m => m.id === memberId)
+  return member ? `${member.first_name} ${member.last_name}` : `Member #${memberId}`
+}
+
+function getAircraftName(aircraftId: number): string {
+  const plane = aircraft.value.find(a => a.id === aircraftId)
+  return plane ? `${plane.tail_number} - ${plane.make} ${plane.model}` : `Aircraft #${aircraftId}`
 }
 
 function formatDate(dateString: string) {
@@ -74,6 +83,6 @@ function formatTime(timeString: string) {
 }
 
 onMounted(() => {
-  loadFlightLogs()
+  loadData()
 })
 </script>
