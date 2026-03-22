@@ -61,17 +61,17 @@ vercel env ls development 2>/dev/null || echo "No development variables"
 echo ""
 
 echo "=========================================="
-echo "Pull Variables to Local .env"
+echo "Pull Variables to Local Repo .env.production"
 echo "=========================================="
 echo ""
-read -p "Download variables to .env.local? (y/n) " -n 1 -r
+read -p "Download variables to .env.production? (y/n) " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    vercel env pull .env.local
-    echo "✓ Variables saved to .env.local"
+    vercel env pull .env.production
+    echo "✓ Variables saved to .env.production"
     echo ""
     echo "Contents:"
-    cat .env.local
+    cat .env.production
 fi
 
 echo ""
