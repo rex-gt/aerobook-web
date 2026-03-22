@@ -1,17 +1,5 @@
 <template>
-  <div class="container">
-    <header>
-      <img src="/aerobook-logo.svg" alt="AeroBook" class="logo" @click="$router.push('/dashboard')" />
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="$router.push('/profile')" title="Edit profile">Profile</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
+  <AppLayout>
     <div class="dashboard-header">
       <h1>Dashboard</h1>
       <p>Welcome back! Here's what's happening with your flying club.</p>
@@ -39,27 +27,6 @@
       </div>
     </div>
 
-    <div class="quick-actions">
-      <h2>Quick Actions</h2>
-      <div class="action-buttons">
-        <button v-if="authStore.canManageMembers" class="btn-primary" @click="$router.push('/members')">
-          Manage Members
-        </button>
-        <button v-if="authStore.canManageAircraft" class="btn-primary" @click="$router.push('/aircraft')">
-          Manage Aircraft
-        </button>
-        <button class="btn-primary" @click="$router.push('/reservations')">
-          Reservations
-        </button>
-        <button class="btn-primary" @click="$router.push('/flight-logs')">
-          {{ authStore.isAdmin || authStore.isOperator ? 'All Flight Logs' : 'My Flight Logs' }}
-        </button>
-        <button v-if="authStore.canManageBilling" class="btn-primary" @click="$router.push('/billing')">
-          Billing
-        </button>
-      </div>
-    </div>
-
     <div class="recent-activity">
       <h2>Recent Reservations</h2>
       <div class="table-container">
@@ -76,8 +43,8 @@
           <tbody>
             <tr v-for="reservation in displayReservations" :key="reservation.id">
               <td>{{ reservation.id }}</td>
-              <td>Member #{{ reservation.member_id }}</td>
-              <td>Aircraft #{{ reservation.aircraft_id }}</td>
+              <td>{{ getMemberName(reservation.member_id) }}</td>
+              <td>{{ getAircraftName(reservation.aircraft_id) }}</td>
               <td>{{ formatDate(reservation.start_time) }}</td>
               <td>
                 <span class="status-badge" :class="`status-${reservation.status}`">
@@ -94,7 +61,7 @@
         </table>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -102,6 +69,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { membersAPI, aircraftAPI, reservationsAPI, billingAPI } from '../services/api'
 import type { Member, Aircraft, Reservation, BillingRecord } from '../types'
+import AppLayout from '../components/AppLayout.vue'
 
 const authStore = useAuthStore()
 
@@ -124,33 +92,36 @@ async function loadData() {
   try {
     const promises: Promise<any>[] = [
       aircraftAPI.getAll(),
-      reservationsAPI.getAll()
+      reservationsAPI.getAll(),
+      membersAPI.getAll()
     ]
-    
-    if (authStore.canManageMembers) {
-      promises.push(membersAPI.getAll())
-    }
-    
+
     if (authStore.canManageBilling) {
       promises.push(billingAPI.getAll())
     }
 
     const results = await Promise.all(promises)
-    
+
     aircraft.value = results[0].data
     reservations.value = results[1].data
-    
-    let resultIndex = 2
-    if (authStore.canManageMembers) {
-      members.value = results[resultIndex].data
-      resultIndex++
-    }
+    members.value = results[2].data
+
     if (authStore.canManageBilling) {
-      billing.value = results[resultIndex].data
+      billing.value = results[3].data
     }
   } catch (error) {
     console.error('Error loading dashboard data:', error)
   }
+}
+
+function getMemberName(memberId: number): string {
+  const member = members.value.find(m => m.id === memberId)
+  return member ? `${member.first_name} ${member.last_name}` : `Member #${memberId}`
+}
+
+function getAircraftName(aircraftId: number): string {
+  const plane = aircraft.value.find(a => a.id === aircraftId)
+  return plane ? `${plane.tail_number} - ${plane.make} ${plane.model}` : `Aircraft #${aircraftId}`
 }
 
 function formatDate(dateString: string) {
@@ -204,34 +175,5 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-}
-
-.user-details {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.role-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.role-admin {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--danger-red);
-}
-
-.role-operator {
-  background: rgba(251, 146, 60, 0.2);
-  color: var(--accent-orange);
-}
-
-.role-member {
-  background: rgba(14, 165, 233, 0.2);
-  color: var(--sky-blue);
 }
 </style>

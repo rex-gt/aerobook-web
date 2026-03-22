@@ -1,17 +1,5 @@
 <template>
-  <div class="container">
-    <header>
-      <div class="logo" @click="$router.push('/dashboard')">✈ Wing Time</div>
-      <div class="user-info">
-        <span v-if="authStore.user" class="user-details">
-          {{ authStore.user.first_name }} {{ authStore.user.last_name }}
-          <span class="role-badge" :class="`role-${authStore.userRole}`">{{ authStore.userRole }}</span>
-        </span>
-        <button class="btn-secondary" @click="$router.push('/profile')" title="Edit profile">Profile</button>
-        <button class="btn-secondary" @click="authStore.logout()">Logout</button>
-      </div>
-    </header>
-
+  <AppLayout>
     <div class="members-header">
       <h1>Manage Members</h1>
       <p>View and manage existing members</p>
@@ -310,16 +298,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useAuthStore } from '../stores/auth'
 import type { Member } from '../types'
 import { membersAPI } from '../services/api'
-
-const authStore = useAuthStore()
+import AppLayout from '../components/AppLayout.vue'
 
 const members = ref<Member[]>([])
 const searchQuery = ref('')
