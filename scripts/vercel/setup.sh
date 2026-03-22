@@ -59,6 +59,9 @@ echo ""
 # Resolve paths: .env.production (in project root) has the deployed URL,
 # .env.local (in project root) has the local dev URL — check .env.production first.
 ENV_PROD="$PROJECT_ROOT/.env.production"
+# Resolve paths: .env.production (in project root) has the deployed URL,
+# .env.local (in project root) has the local dev URL — check .env.production first.
+ENV_PROD="$PROJECT_ROOT/.env.production"
 ENV_LOCAL="$PROJECT_ROOT/.env.local"
 
 api_url=""
@@ -72,11 +75,20 @@ fi
 
 # Fall back to project root .env.local (has local dev URL)
 if [ -z "$api_url" ] && [ -f "$ENV_LOCAL" ]; then
+# Prefer .env.production (Vercel-pulled, has production URL)
+if [ -f "$ENV_PROD" ]; then
+    api_url=$(grep -E '^VITE_API_URL=' "$ENV_PROD" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+    [ -n "$api_url" ] && env_source="$ENV_PROD"
+fi
+
+# Fall back to project root .env.local (has local dev URL)
+if [ -z "$api_url" ] && [ -f "$ENV_LOCAL" ]; then
     api_url=$(grep -E '^VITE_API_URL=' "$ENV_LOCAL" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
     [ -n "$api_url" ] && env_source="$ENV_LOCAL"
 fi
 
 if [ -z "$api_url" ]; then
+    echo "⚠️  VITE_API_URL not found in $ENV_PROD or $ENV_LOCAL"
     echo "⚠️  VITE_API_URL not found in $ENV_PROD or $ENV_LOCAL"
     echo ""
     echo "Enter your Railway API URL"
@@ -152,11 +164,15 @@ echo ""
 # Pull variables to local
 echo "=========================================="
 echo "Pull Variables to Local Repo .env.production"
+echo "Pull Variables to Local Repo .env.production"
 echo "=========================================="
 echo ""
 read -p "Download variables to local .env.production file? (y/n) " -n 1 -r
+read -p "Download variables to local .env.production file? (y/n) " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    vercel env pull .env.production
+    echo "✓ Variables downloaded to .env.production"
     vercel env pull .env.production
     echo "✓ Variables downloaded to .env.production"
 fi
