@@ -131,3 +131,20 @@ export interface User {
   reminder_hours: number
   created_at: string
 }
+
+export interface WhatsNewFeature {
+  icon?: string
+  title: string
+  description: string
+}
+
+export interface WhatsNewConfig {
+  id: string
+  enabled: boolean
+  startDate?: string
+  endDate?: string
+  title: string
+  subtitle?: string
+  features: WhatsNewFeature[]
+}
+

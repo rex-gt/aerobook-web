@@ -29,6 +29,9 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = response.data.token
     localStorage.setItem('token', response.data.token)
     await loadProfile(false)
+    if (user.value) {
+      sessionStorage.removeItem(`whats_new_session_dismissed_${user.value.id}`)
+    }
     router.push('/dashboard')
   }
 
@@ -44,6 +47,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    if (user.value) {
+      sessionStorage.removeItem(`whats_new_session_dismissed_${user.value.id}`)
+    }
     user.value = null
     token.value = null
     localStorage.removeItem('token')

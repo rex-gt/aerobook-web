@@ -199,6 +199,16 @@ describe('useAuthStore', () => {
       const store = useAuthStore()
       await expect(store.login('test@example.com', 'bad')).rejects.toThrow('Network error')
     })
+
+    it('clears What\'s New session dismissed state on successful login', async () => {
+      const userData = makeUser({ id: 5 })
+      mockLogin.mockResolvedValue({ data: { token: 'new-token' } })
+      mockGetProfile.mockResolvedValue({ data: userData })
+      sessionStorage.setItem('whats_new_session_dismissed_5', 'v1')
+      const store = useAuthStore()
+      await store.login('test@example.com', 'password123')
+      expect(sessionStorage.getItem('whats_new_session_dismissed_5')).toBeNull()
+    })
   })
 
   describe('loadProfile()', () => {
@@ -254,6 +264,15 @@ describe('useAuthStore', () => {
       const store = useAuthStore()
       store.logout()
       expect(mockPush).toHaveBeenCalledWith('/login')
+    })
+
+    it('clears What\'s New session dismissed state on logout', () => {
+      const userData = makeUser({ id: 5 })
+      const store = useAuthStore()
+      store.user = userData
+      sessionStorage.setItem('whats_new_session_dismissed_5', 'v1')
+      store.logout()
+      expect(sessionStorage.getItem('whats_new_session_dismissed_5')).toBeNull()
     })
   })
 })
