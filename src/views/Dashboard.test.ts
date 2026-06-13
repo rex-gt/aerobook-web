@@ -3,27 +3,28 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { makeUser, makeAircraft, makeReservation, makeBillingRecord } from '../__tests__/helpers'
 
+const mockPush = vi.fn()
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ push: vi.fn() })
+  useRouter: () => ({ push: mockPush })
 }))
 
 const mockMembersGetAll = vi.fn(() => Promise.resolve({ data: [] }))
 const mockAircraftGetAll = vi.fn(() => Promise.resolve({ data: [makeAircraft()] }))
-const mockReservationsGetAll = vi.fn(() => Promise.resolve({ data: [makeReservation()] }))
-const mockReservationsUpdate = vi.fn(() => Promise.resolve({ data: {} }))
+const mockReservationsGetAll = vi.fn((_params?: any) => Promise.resolve({ data: [makeReservation()] }))
+const mockReservationsUpdate = vi.fn((_id?: any, _data?: any) => Promise.resolve({ data: {} }))
 const mockBillingGetAll = vi.fn(() => Promise.resolve({ data: [makeBillingRecord()] }))
-const mockFlightLogsCreate = vi.fn(() => Promise.resolve({ data: {} }))
+const mockFlightLogsCreate = vi.fn((_data?: any) => Promise.resolve({ data: {} }))
 
 vi.mock('../services/api', () => ({
   authAPI: { login: vi.fn(), getProfile: vi.fn() },
   membersAPI: { getAll: () => mockMembersGetAll() },
   aircraftAPI: { getAll: () => mockAircraftGetAll() },
   reservationsAPI: { 
-    getAll: (...args: any[]) => mockReservationsGetAll(...args),
-    update: (...args: any[]) => mockReservationsUpdate(...args)
+    getAll: (params?: any) => mockReservationsGetAll(params),
+    update: (id: any, data: any) => mockReservationsUpdate(id, data)
   },
   billingAPI: { getAll: () => mockBillingGetAll() },
-  flightLogsAPI: { create: (...args: any[]) => mockFlightLogsCreate(...args) }
+  flightLogsAPI: { create: (data: any) => mockFlightLogsCreate(data) }
 }))
 
 import Dashboard from './Dashboard.vue'
@@ -246,6 +247,7 @@ describe('Dashboard.vue', () => {
 
   it('handles error during flight log submission', async () => {
     const res = makeReservation({ id: 103 })
+    mockAircraftGetAll.mockResolvedValue({ data: [makeAircraft()] })
     mockReservationsGetAll.mockResolvedValue({ data: [res] })
     mockFlightLogsCreate.mockRejectedValue(new Error('API Error'))
     
@@ -262,5 +264,45 @@ describe('Dashboard.vue', () => {
     
     expect(wrapper.text()).toContain('Failed to submit flight details. Please try again.')
     expect(wrapper.find('.modal-overlay').exists()).toBe(true) // Modal stays open
+  })
+
+  it('redirects to /members when Total Members card is clicked', async () => {
+    mockPush.mockClear()
+    const wrapper = mountDashboard('admin')
+    await flushPromises()
+    const card = wrapper.findAll('.stat-card').find(c => c.text().includes('Total Members'))
+    expect(card).toBeDefined()
+    await card?.trigger('click')
+    expect(mockPush).toHaveBeenCalledWith('/members')
+  })
+
+  it('redirects to /aircraft when Available Aircraft card is clicked', async () => {
+    mockPush.mockClear()
+    const wrapper = mountDashboard('member')
+    await flushPromises()
+    const card = wrapper.findAll('.stat-card').find(c => c.text().includes('Available Aircraft'))
+    expect(card).toBeDefined()
+    await card?.trigger('click')
+    expect(mockPush).toHaveBeenCalledWith('/aircraft')
+  })
+
+  it('redirects to /reservations when Upcoming Reservations card is clicked', async () => {
+    mockPush.mockClear()
+    const wrapper = mountDashboard('member')
+    await flushPromises()
+    const card = wrapper.findAll('.stat-card').find(c => c.text().includes('Upcoming Reservations'))
+    expect(card).toBeDefined()
+    await card?.trigger('click')
+    expect(mockPush).toHaveBeenCalledWith('/reservations')
+  })
+
+  it('redirects to /billing when Unpaid Bills card is clicked', async () => {
+    mockPush.mockClear()
+    const wrapper = mountDashboard('admin')
+    await flushPromises()
+    const card = wrapper.findAll('.stat-card').find(c => c.text().includes('Unpaid Bills'))
+    expect(card).toBeDefined()
+    await card?.trigger('click')
+    expect(mockPush).toHaveBeenCalledWith('/billing')
   })
 })
