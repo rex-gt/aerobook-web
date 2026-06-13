@@ -1,0 +1,15 @@
+{
+  "id": "whats-new-v1.0.0",
+  "enabled": true,
+  "startDate": "2026-06-15T00:00:00Z",
+  "endDate": "2026-12-31T23:59:59Z",
+  "title": "Welcome to Aerobook 1.0",
+  "subtitle": "Discover the latest updates and improvements.",
+  "features": [
+    {
+      "icon": "📊",
+      "title": "Clickable Dashboard Stats",
+      "description": "Quickly jump to relevant sections—like members, aircraft, reservations, or billing—by clicking directly on the dashboard status cards."
+    }
+  ]
+}

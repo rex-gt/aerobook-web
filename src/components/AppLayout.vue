@@ -70,15 +70,83 @@
 
     <!-- Page Content -->
     <slot></slot>
+
+    <!-- What's New Pop-up -->
+    <WhatsNewModal
+      v-if="whatsNewConfig && isWhatsNewOpen"
+      :config="whatsNewConfig"
+      :is-open="isWhatsNewOpen"
+      @close="handleWhatsNewClose"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import type { WhatsNewConfig } from '../types'
+import WhatsNewModal from './WhatsNewModal.vue'
 
 const authStore = useAuthStore()
 const drawerOpen = ref(false)
+
+const isWhatsNewOpen = ref(false)
+const whatsNewConfig = ref<WhatsNewConfig | null>(null)
+
+const handleWhatsNewClose = (dontShowAgain: boolean) => {
+  if (whatsNewConfig.value && authStore.user) {
+    const configId = whatsNewConfig.value.id
+    const userId = authStore.user.id
+    if (dontShowAgain) {
+      localStorage.setItem(`whats_new_dismissed_${userId}`, configId)
+    }
+    sessionStorage.setItem(`whats_new_session_dismissed_${userId}`, configId)
+  }
+  isWhatsNewOpen.value = false
+}
+
+const checkWhatsNew = async () => {
+  if (!authStore.isAuthenticated || !authStore.user) return
+  if (whatsNewConfig.value) return
+
+  try {
+    const response = await fetch('/whats-new.json')
+    if (!response.ok) return
+
+    const config: WhatsNewConfig = await response.json()
+    if (!config || !config.enabled) return
+
+    const now = new Date()
+    if (config.startDate && now < new Date(config.startDate)) {
+      return
+    }
+    if (config.endDate && now > new Date(config.endDate)) {
+      return
+    }
+
+    const userId = authStore.user.id
+    const persistentDismissed = localStorage.getItem(`whats_new_dismissed_${userId}`)
+    if (persistentDismissed === config.id) return
+
+    const sessionDismissed = sessionStorage.getItem(`whats_new_session_dismissed_${userId}`)
+    if (sessionDismissed === config.id) return
+
+    whatsNewConfig.value = config
+    isWhatsNewOpen.value = true
+  } catch (error) {
+    console.error('Failed to load or parse What\'s New configuration:', error)
+  }
+}
+
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (newUser) {
+      checkWhatsNew()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
