@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { nextTick } from 'vue'
@@ -109,7 +109,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   }
 
   it('fetches whats-new config and displays modal if enabled and dates match', async () => {
-    const fetchSpy = vi.spyOn(global, 'fetch').mockImplementation(() =>
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -133,7 +133,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   })
 
   it('does not display modal if enabled is false', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation(() =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -152,7 +152,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   })
 
   it('does not display modal if current date is before startDate', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation(() =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -171,7 +171,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   })
 
   it('does not display modal if current date is after endDate', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation(() =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -190,7 +190,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   })
 
   it('sets localStorage and sessionStorage on close when dontShowAgain is checked', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation(() =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(dummyConfig)
@@ -215,7 +215,7 @@ describe('AppLayout.vue & WhatsNewModal Integration', () => {
   })
 
   it('sets only sessionStorage on close when dontShowAgain is unchecked', async () => {
-    vi.spyOn(global, 'fetch').mockImplementation(() =>
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(dummyConfig)
