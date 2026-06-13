@@ -6,7 +6,11 @@ import {
   toDatetimeLocal,
   extractApiError,
   validateReservationTimes,
-  toUTCISOString
+  toUTCISOString,
+  formatDate,
+  formatTime,
+  getUserTimezone,
+  getUserTimezoneAbbr
 } from './reservations'
 
 describe('validateReservationTimes', () => {
@@ -186,5 +190,35 @@ describe('extractApiError', () => {
   it('returns empty string when no error or message in data', () => {
     const error = { response: { data: {} } }
     expect(extractApiError(error)).toBe('')
+  })
+})
+
+describe('timezone utilities', () => {
+  it('formatDate formats date including timezone abbreviation', () => {
+    const dateStr = '2027-06-13T09:00:00Z'
+    const result = formatDate(dateStr)
+    expect(result).toContain('Jun 13, 2027')
+    const parts = result.split(' ')
+    const tzPart = parts[parts.length - 1]
+    expect(tzPart.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('getUserTimezone returns a string with timezone and optional abbreviation', () => {
+    const tz = getUserTimezone()
+    expect(tz).toBeTruthy()
+    expect(typeof tz).toBe('string')
+  })
+
+  it('getUserTimezoneAbbr returns a string representation of the timezone abbreviation', () => {
+    const abbr = getUserTimezoneAbbr()
+    expect(typeof abbr).toBe('string')
+  })
+
+  it('formatTime formats time including timezone abbreviation', () => {
+    const dateStr = '2027-06-13T09:00:00Z'
+    const result = formatTime(dateStr)
+    const parts = result.split(' ')
+    const tzPart = parts[parts.length - 1]
+    expect(tzPart.length).toBeGreaterThanOrEqual(3)
   })
 })

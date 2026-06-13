@@ -30,13 +30,27 @@ export function formatHour(hour: number): string {
 }
 
 export function formatTime(isoString: string): string {
-  return new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  return new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
 }
 
 export function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
   })
+}
+
+export function getUserTimezone(): string {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const abbr = Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+    .formatToParts(new Date())
+    .find(part => part.type === 'timeZoneName')?.value
+  return abbr ? `${tz} (${abbr})` : tz
+}
+
+export function getUserTimezoneAbbr(): string {
+  return Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+    .formatToParts(new Date())
+    .find(part => part.type === 'timeZoneName')?.value || ''
 }
 
 export function toDatetimeLocal(date: Date): string {

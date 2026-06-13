@@ -9,10 +9,11 @@ Vue 3 frontend web application for AeroBook Flight Management System — a role-
 - **Smart Dashboard** — Personalized stats and recent activity. Members see their own upcoming reservations, while admins see club-wide data.
 - **Member Management** — Admin-only interface to manage members with optional welcome email suppression.
 - **Aircraft Fleet Management** — Comprehensive fleet tracking including tach hours and hourly rates.
-- **Reservation System** — Full-featured calendar (Day/Week/Month views) with mobile-optimized navigation.
+- **Reservation System** — Full-featured calendar (Day/Week/Month views) with mobile-optimized navigation, dynamic local timezone detection, and timezone indicators when booking or viewing reservations.
 - **UI Cleanup** — Technical database IDs removed from all user-facing views for a more professional experience.
 - **Security** — JWT Authentication with automatic session handling and secure HTTPS support.
 - **Password Reset** — Complete "Forgot Password" flow with 10-minute secure email links.
+- **"What's New" Modal** — Configurable pop-up modal with scheduling controls to present new features, updates, or announcements to users upon login.
 
 ## Tech Stack
 

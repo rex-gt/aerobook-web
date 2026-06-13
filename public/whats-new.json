@@ -10,6 +10,11 @@
       "icon": "📊",
       "title": "Clickable Dashboard Stats",
       "description": "Quickly jump to relevant sections—like members, aircraft, reservations, or billing—by clicking directly on the dashboard status cards."
+    },
+    {
+      "icon": "🌐",
+      "title": "Local Timezone Support",
+      "description": "The reservation calendar, booking forms, and dashboards now automatically detect and display times in your local timezone."
     }
   ]
 }
