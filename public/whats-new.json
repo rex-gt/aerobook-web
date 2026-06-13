@@ -13,8 +13,8 @@
     },
     {
       "icon": "🌐",
-      "title": "Local Timezone Support",
-      "description": "The reservation calendar, booking forms, and dashboards now automatically detect and display times in your local timezone."
+      "title": "Custom Timezone Preferences",
+      "description": "Choose between UTC and your local computer's timezone in your profile settings. Your preference is automatically applied to the reservations calendar, booking forms, and email notifications."
     }
   ]
 }

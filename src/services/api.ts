@@ -46,6 +46,8 @@ export const authAPI = {
     phone?: string;
     current_password?: string;
     new_password?: string;
+    reminder_hours?: number;
+    timezone_pref?: string;
   }) => api.put<{ message: string; user: User }>('/users/profile', data),
 
   forgotPassword: (email: string) =>
