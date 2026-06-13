@@ -4,7 +4,7 @@
     <div class="page-header">
       <div>
         <h1>Reservations</h1>
-        <p>Manage aircraft bookings</p>
+        <p>Manage aircraft bookings <span class="timezone-indicator">({{ userTimezone }})</span></p>
       </div>
       <button class="btn-primary" @click="openNewReservationForm()">+ New Reservation</button>
     </div>
@@ -240,11 +240,11 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Start Time</label>
+              <label>Start Time ({{ userTimezoneAbbr }})</label>
               <input v-model="editData.start_time" type="datetime-local" :min="minDateTime" required />
             </div>
             <div class="form-group">
-              <label>End Time</label>
+              <label>End Time ({{ userTimezoneAbbr }})</label>
               <input v-model="editData.end_time" type="datetime-local" :min="minDateTime" required />
             </div>
           </div>
@@ -259,6 +259,9 @@
           <div class="form-group">
             <label>Notes</label>
             <textarea v-model="editData.notes" rows="3"></textarea>
+          </div>
+          <div class="form-group form-timezone-info">
+            <small>Times are selected and saved in your local timezone: <strong>{{ userTimezone }}</strong>.</small>
           </div>
           <div class="modal-actions">
             <button type="submit" class="btn-primary">Save Changes</button>
@@ -299,17 +302,20 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Start Time</label>
+              <label>Start Time ({{ userTimezoneAbbr }})</label>
               <input v-model="formData.start_time" type="datetime-local" :min="minDateTime" required />
             </div>
             <div class="form-group">
-              <label>End Time</label>
+              <label>End Time ({{ userTimezoneAbbr }})</label>
               <input v-model="formData.end_time" type="datetime-local" :min="minDateTime" required />
             </div>
           </div>
           <div class="form-group">
             <label>Notes</label>
             <textarea v-model="formData.notes" rows="3"></textarea>
+          </div>
+          <div class="form-group form-timezone-info">
+            <small>Times are selected and saved in your local timezone: <strong>{{ userTimezone }}</strong>.</small>
           </div>
           <div class="modal-actions">
             <button type="submit" class="btn-primary">Create Reservation</button>
@@ -328,13 +334,17 @@ import { reservationsAPI, membersAPI, aircraftAPI } from '../services/api'
 import type { Reservation, Member, Aircraft } from '../types'
 import {
   getWeekDays, sameDay, stripTime, formatHour, formatTime, formatDate,
-  toDatetimeLocal, extractApiError, validateReservationTimes, toUTCISOString
+  toDatetimeLocal, extractApiError, validateReservationTimes, toUTCISOString,
+  getUserTimezone, getUserTimezoneAbbr
 } from '../utils/reservations'
 import AppLayout from '../components/AppLayout.vue'
 
 type CalendarView = 'day' | 'week' | 'month' | 'my'
 
 const authStore = useAuthStore()
+
+const userTimezone = computed(() => getUserTimezone())
+const userTimezoneAbbr = computed(() => getUserTimezoneAbbr())
 
 // ── Data ──────────────────────────────────────────────────
 const reservations = ref<Reservation[]>([])
@@ -1396,5 +1406,19 @@ function formatDayColumnHeader(day: Date): string {
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
   color: #86efac;
+}
+
+.timezone-indicator {
+  color: var(--sky-blue);
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
+
+.form-timezone-info {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: -0.75rem;
+  margin-bottom: 1.5rem;
 }
 </style>
