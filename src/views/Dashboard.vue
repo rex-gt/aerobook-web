@@ -17,22 +17,22 @@
     </div>
 
     <div class="stats-grid">
-      <div class="stat-card" v-if="authStore.canManageMembers">
+      <div class="stat-card clickable" v-if="authStore.canManageMembers" @click="router.push('/members')">
         <h3>Total Members</h3>
         <div class="value">{{ members.length }}</div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card clickable" @click="router.push('/aircraft')">
         <h3>Available Aircraft</h3>
         <div class="value">{{ availableAircraft }}</div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card clickable" @click="router.push('/reservations')">
         <h3>Upcoming Reservations</h3>
         <div class="value">{{ upcomingReservations }}</div>
       </div>
 
-      <div class="stat-card" v-if="authStore.canManageBilling">
+      <div class="stat-card clickable" v-if="authStore.canManageBilling" @click="router.push('/billing')">
         <h3>Unpaid Bills</h3>
         <div class="value">{{ unpaidBills }}</div>
       </div>
@@ -153,12 +153,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { membersAPI, aircraftAPI, reservationsAPI, billingAPI, flightLogsAPI } from '../services/api'
 import type { Member, Aircraft, Reservation, BillingRecord } from '../types'
 import AppLayout from '../components/AppLayout.vue'
 
 const authStore = useAuthStore()
+const router = useRouter()
 
 const members = ref<Member[]>([])
 const aircraft = ref<Aircraft[]>([])
