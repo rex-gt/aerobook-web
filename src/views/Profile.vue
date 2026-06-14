@@ -216,7 +216,7 @@ const formData = ref<FormData>({
   email: authStore.user?.email || '',
   phone: authStore.user?.phone || '',
   reminder_hours: authStore.user?.reminder_hours || 24,
-  timezone_pref: authStore.user?.timezone_pref || 'local',
+  timezone_pref: authStore.user?.timezone_pref === 'UTC' ? 'UTC' : 'local',
   current_password: '',
   new_password: '',
   confirm_password: ''
@@ -272,7 +272,7 @@ async function handleUpdate() {
       email: formData.value.email,
       phone: formData.value.phone,
       reminder_hours: formData.value.reminder_hours,
-      timezone_pref: formData.value.timezone_pref,
+      timezone_pref: formData.value.timezone_pref === 'local' ? resolvedLocalTimezone.value : formData.value.timezone_pref,
       ...(formData.value.new_password && {
         current_password: formData.value.current_password,
         new_password: formData.value.new_password
@@ -283,6 +283,9 @@ async function handleUpdate() {
 
     // Update the auth store with new user data
     authStore.user = response.data.user
+
+    // Sync local form state with updated/resolved preference
+    formData.value.timezone_pref = response.data.user.timezone_pref === 'UTC' ? 'UTC' : 'local'
 
     // Clear password fields after successful update
     formData.value.current_password = ''
