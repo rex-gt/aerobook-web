@@ -1,8 +1,8 @@
 {
   "id": "whats-new-v1.0.0",
   "enabled": true,
-  "startDate": "2026-06-15T00:00:00Z",
-  "endDate": "2026-12-31T23:59:59Z",
+  "startDate": "2026-06-14T00:00:00Z",
+  "endDate": "2026-06-31T23:59:59Z",
   "title": "Welcome to Aerobook 1.0",
   "subtitle": "Discover the latest updates and improvements.",
   "features": [
