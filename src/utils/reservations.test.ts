@@ -1,3 +1,5 @@
+import { setActivePinia, createPinia } from 'pinia'
+import { useAuthStore } from '../stores/auth'
 import {
   getWeekDays,
   sameDay,
@@ -194,6 +196,10 @@ describe('extractApiError', () => {
 })
 
 describe('timezone utilities', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('formatDate formats date including timezone abbreviation', () => {
     const dateStr = '2027-06-13T09:00:00Z'
     const result = formatDate(dateStr)
@@ -220,5 +226,55 @@ describe('timezone utilities', () => {
     const parts = result.split(' ')
     const tzPart = parts[parts.length - 1]
     expect(tzPart.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('respects UTC timezone preference in format functions', () => {
+    const store = useAuthStore()
+    store.user = {
+      id: 1,
+      email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      member_number: 'M-1',
+      role: 'member',
+      is_active: true,
+      reminder_hours: 24,
+      timezone_pref: 'UTC',
+      created_at: '2026-06-13T00:00:00Z'
+    }
+
+    const dateStr = '2027-06-13T09:00:00Z'
+    const formattedDate = formatDate(dateStr)
+    const formattedTime = formatTime(dateStr)
+
+    expect(formattedDate).toContain('Jun 13, 2027')
+    expect(formattedDate).toContain('9:00 AM')
+    expect(formattedDate).toContain('UTC')
+
+    expect(formattedTime).toContain('9:00 AM')
+    expect(formattedTime).toContain('UTC')
+
+    expect(getUserTimezone()).toBe('UTC')
+    expect(getUserTimezoneAbbr()).toBe('UTC')
+  })
+
+  it('respects UTC timezone preference in datetime-local conversions', () => {
+    const store = useAuthStore()
+    store.user = {
+      id: 1,
+      email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      member_number: 'M-1',
+      role: 'member',
+      is_active: true,
+      reminder_hours: 24,
+      timezone_pref: 'UTC',
+      created_at: '2026-06-13T00:00:00Z'
+    }
+
+    const date = new Date(Date.UTC(2027, 5, 15, 9, 30))
+    expect(toDatetimeLocal(date)).toBe('2027-06-15T09:30')
+    expect(toUTCISOString('2027-06-15T09:30')).toBe('2027-06-15T09:30:00.000Z')
   })
 })

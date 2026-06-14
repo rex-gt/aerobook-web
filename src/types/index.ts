@@ -10,6 +10,8 @@ export interface Member {
   password?: string
   role: Role
   is_active: boolean
+  reminder_hours: number
+  timezone_pref?: string
   created_at: string
   updated_at: string
 }
@@ -129,6 +131,7 @@ export interface User {
   role: Role
   is_active: boolean
   reminder_hours: number
+  timezone_pref?: string
   created_at: string
 }
 

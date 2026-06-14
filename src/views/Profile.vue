@@ -120,6 +120,25 @@
             </div>
           </div>
 
+          <!-- Time Zone Preference -->
+          <div class="form-section">
+            <h2>Time Zone Preference</h2>
+            <div class="form-group">
+              <label for="timezone_pref">Display Time Zone</label>
+              <div class="input-with-hint">
+                <select
+                  v-model="formData.timezone_pref"
+                  id="timezone_pref"
+                  required
+                >
+                  <option value="local">Local Time Zone ({{ resolvedLocalTimezone }})</option>
+                  <option value="UTC">UTC</option>
+                </select>
+                <span class="hint-text">Choose how dates and times are displayed on the schedule and in emails sent to you.</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Member Information Display -->
           <div class="form-section info-section">
             <h2>Member Information</h2>
@@ -177,10 +196,19 @@ interface FormData {
   email: string
   phone?: string
   reminder_hours: number
+  timezone_pref: string
   current_password?: string
   new_password?: string
   confirm_password?: string
 }
+
+const resolvedLocalTimezone = computed(() => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch (e) {
+    return 'UTC'
+  }
+})
 
 const formData = ref<FormData>({
   first_name: authStore.user?.first_name || '',
@@ -188,6 +216,7 @@ const formData = ref<FormData>({
   email: authStore.user?.email || '',
   phone: authStore.user?.phone || '',
   reminder_hours: authStore.user?.reminder_hours || 24,
+  timezone_pref: authStore.user?.timezone_pref || 'local',
   current_password: '',
   new_password: '',
   confirm_password: ''
@@ -243,6 +272,7 @@ async function handleUpdate() {
       email: formData.value.email,
       phone: formData.value.phone,
       reminder_hours: formData.value.reminder_hours,
+      timezone_pref: formData.value.timezone_pref,
       ...(formData.value.new_password && {
         current_password: formData.value.current_password,
         new_password: formData.value.new_password

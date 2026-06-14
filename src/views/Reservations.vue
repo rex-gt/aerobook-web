@@ -261,7 +261,7 @@
             <textarea v-model="editData.notes" rows="3"></textarea>
           </div>
           <div class="form-group form-timezone-info">
-            <small>Times are selected and saved in your local timezone: <strong>{{ userTimezone }}</strong>.</small>
+            <small>Times are selected and saved in timezone: <strong>{{ userTimezone }}</strong>.</small>
           </div>
           <div class="modal-actions">
             <button type="submit" class="btn-primary">Save Changes</button>
@@ -315,7 +315,7 @@
             <textarea v-model="formData.notes" rows="3"></textarea>
           </div>
           <div class="form-group form-timezone-info">
-            <small>Times are selected and saved in your local timezone: <strong>{{ userTimezone }}</strong>.</small>
+            <small>Times are selected and saved in timezone: <strong>{{ userTimezone }}</strong>.</small>
           </div>
           <div class="modal-actions">
             <button type="submit" class="btn-primary">Create Reservation</button>
@@ -335,7 +335,7 @@ import type { Reservation, Member, Aircraft } from '../types'
 import {
   getWeekDays, sameDay, stripTime, formatHour, formatTime, formatDate,
   toDatetimeLocal, extractApiError, validateReservationTimes, toUTCISOString,
-  getUserTimezone, getUserTimezoneAbbr
+  getUserTimezone, getUserTimezoneAbbr, isUTCMode
 } from '../utils/reservations'
 import AppLayout from '../components/AppLayout.vue'
 
@@ -449,25 +449,34 @@ const myReservations = computed(() => {
 
 const currentPeriodLabel = computed(() => {
   const d = currentDate.value
+  const tz = isUTCMode() ? 'UTC' : undefined
   if (currentView.value === 'day') {
     return d.toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: tz
     })
   }
   if (currentView.value === 'week') {
     const days = getWeekDays(d)
     const start = days[0]
     const end = days[6]
-    if (start.getMonth() === end.getMonth()) {
-      return `${start.toLocaleDateString('en-US', { month: 'long' })} ${start.getDate()}–${end.getDate()}, ${start.getFullYear()}`
+    
+    const startMonth = start.toLocaleDateString('en-US', { month: 'long', timeZone: tz })
+    const startYear = start.toLocaleDateString('en-US', { year: 'numeric', timeZone: tz })
+    const startDay = start.toLocaleDateString('en-US', { day: 'numeric', timeZone: tz })
+    const endDay = end.toLocaleDateString('en-US', { day: 'numeric', timeZone: tz })
+    
+    const isSameMonth = start.toLocaleDateString('en-US', { month: 'numeric', timeZone: tz }) === 
+                        end.toLocaleDateString('en-US', { month: 'numeric', timeZone: tz })
+    if (isSameMonth) {
+      return `${startMonth} ${startDay}–${endDay}, ${startYear}`
     }
-    return (
-      start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
-      ' – ' +
-      end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    )
+    
+    const startMonthShort = start.toLocaleDateString('en-US', { month: 'short', timeZone: tz })
+    const endMonthShort = end.toLocaleDateString('en-US', { month: 'short', timeZone: tz })
+    const endYear = end.toLocaleDateString('en-US', { year: 'numeric', timeZone: tz })
+    return `${startMonthShort} ${startDay} – ${endMonthShort} ${endDay}, ${endYear}`
   }
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: tz })
 })
 
 // Days shown in the time grid
@@ -479,30 +488,43 @@ const viewDays = computed<Date[]>(() => {
 // All cells for the month grid (5 or 6 full weeks)
 const monthDays = computed(() => {
   const d = currentDate.value
-  const year = d.getFullYear()
-  const month = d.getMonth()
+  const utc = isUTCMode()
+  const year = utc ? d.getUTCFullYear() : d.getFullYear()
+  const month = utc ? d.getUTCMonth() : d.getMonth()
   const today = new Date()
 
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
+  const firstDay = utc ? new Date(Date.UTC(year, month, 1)) : new Date(year, month, 1)
+  const lastDay = utc ? new Date(Date.UTC(year, month + 1, 0)) : new Date(year, month + 1, 0)
 
   // Sunday of the week containing the 1st
   const start = new Date(firstDay)
-  start.setDate(firstDay.getDate() - firstDay.getDay())
+  if (utc) {
+    start.setUTCDate(firstDay.getUTCDate() - firstDay.getUTCDay())
+  } else {
+    start.setDate(firstDay.getDate() - firstDay.getDay())
+  }
 
   // Saturday of the week containing the last day
   const end = new Date(lastDay)
-  end.setDate(lastDay.getDate() + (6 - lastDay.getDay()))
+  if (utc) {
+    end.setUTCDate(lastDay.getUTCDate() + (6 - lastDay.getUTCDay()))
+  } else {
+    end.setDate(lastDay.getDate() + (6 - lastDay.getDay()))
+  }
 
   const days: { date: Date; inMonth: boolean; isToday: boolean }[] = []
   const cur = new Date(start)
   while (cur <= end) {
     days.push({
       date: new Date(cur),
-      inMonth: cur.getMonth() === month,
+      inMonth: utc ? cur.getUTCMonth() === month : cur.getMonth() === month,
       isToday: sameDay(cur, today)
     })
-    cur.setDate(cur.getDate() + 1)
+    if (utc) {
+      cur.setUTCDate(cur.getUTCDate() + 1)
+    } else {
+      cur.setDate(cur.getDate() + 1)
+    }
   }
   return days
 })
@@ -510,13 +532,27 @@ const monthDays = computed(() => {
 // ── Navigation ────────────────────────────────────────────
 function navigate(direction: number) {
   const d = new Date(currentDate.value)
+  const utc = isUTCMode()
   if (currentView.value === 'day') {
-    d.setDate(d.getDate() + direction)
+    if (utc) {
+      d.setUTCDate(d.getUTCDate() + direction)
+    } else {
+      d.setDate(d.getDate() + direction)
+    }
   } else if (currentView.value === 'week') {
-    d.setDate(d.getDate() + direction * 7)
+    if (utc) {
+      d.setUTCDate(d.getUTCDate() + direction * 7)
+    } else {
+      d.setDate(d.getDate() + direction * 7)
+    }
   } else {
-    d.setDate(1) // prevent month overflow (e.g. Jan 31 → Mar when going to Feb)
-    d.setMonth(d.getMonth() + direction)
+    if (utc) {
+      d.setUTCDate(1)
+      d.setUTCMonth(d.getUTCMonth() + direction)
+    } else {
+      d.setDate(1)
+      d.setMonth(d.getMonth() + direction)
+    }
   }
   currentDate.value = d
 }
@@ -691,9 +727,15 @@ async function deleteReservation(id: number) {
 // ── Calendar Helpers ──────────────────────────────────────
 function getReservationsForDay(date: Date): Reservation[] {
   const dayStart = new Date(date)
-  dayStart.setHours(0, 0, 0, 0)
   const dayEnd = new Date(date)
-  dayEnd.setHours(23, 59, 59, 999)
+  const utc = isUTCMode()
+  if (utc) {
+    dayStart.setUTCHours(0, 0, 0, 0)
+    dayEnd.setUTCHours(23, 59, 59, 999)
+  } else {
+    dayStart.setHours(0, 0, 0, 0)
+    dayEnd.setHours(23, 59, 59, 999)
+  }
   return filteredReservations.value.filter(res => {
     const s = new Date(res.start_time)
     const e = new Date(res.end_time)
@@ -704,18 +746,28 @@ function getReservationsForDay(date: Date): Reservation[] {
 function getEventStyle(res: Reservation, day: Date): Record<string, string> {
   const resStart = new Date(res.start_time)
   const resEnd = new Date(res.end_time)
+  const utc = isUTCMode()
 
   // Clip event to the visible time range for this day
   const visibleStart = new Date(day)
-  visibleStart.setHours(DAY_START_HOUR, 0, 0, 0)
   const visibleEnd = new Date(day)
-  visibleEnd.setHours(DAY_END_HOUR, 59, 59, 999)
+  if (utc) {
+    visibleStart.setUTCHours(DAY_START_HOUR, 0, 0, 0)
+    visibleEnd.setUTCHours(DAY_END_HOUR, 59, 59, 999)
+  } else {
+    visibleStart.setHours(DAY_START_HOUR, 0, 0, 0)
+    visibleEnd.setHours(DAY_END_HOUR, 59, 59, 999)
+  }
 
   const start = resStart < visibleStart ? visibleStart : resStart
   const end = resEnd > visibleEnd ? visibleEnd : resEnd
 
-  const startMins = start.getHours() * 60 + start.getMinutes()
-  const endMins = end.getHours() * 60 + end.getMinutes()
+  const startMins = utc
+    ? start.getUTCHours() * 60 + start.getUTCMinutes()
+    : start.getHours() * 60 + start.getMinutes()
+  const endMins = utc
+    ? end.getUTCHours() * 60 + end.getUTCMinutes()
+    : end.getHours() * 60 + end.getMinutes()
 
   const topPx = (startMins - DAY_START_HOUR * 60) / 60 * HOUR_HEIGHT
   const heightPx = Math.max(MIN_EVENT_HEIGHT, (endMins - startMins) / 60 * HOUR_HEIGHT)
@@ -795,10 +847,11 @@ function isToday(date: Date): boolean {
 }
 
 function formatDayColumnHeader(day: Date): string {
+  const tz = isUTCMode() ? 'UTC' : undefined
   if (currentView.value === 'day') {
-    return day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    return day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: tz })
   }
-  return day.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' })
+  return day.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', timeZone: tz })
 }
 </script>
 
