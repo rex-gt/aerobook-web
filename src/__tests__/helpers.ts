@@ -24,6 +24,7 @@ export function makeMember(overrides: Partial<Member> = {}): Member {
     email: 'member@example.com',
     role: 'member',
     is_active: true,
+    reminder_hours: 24,
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
     ...overrides
